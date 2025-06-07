@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>교과목 Q&A 게시판</title>
+    <title>질문 게시판</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Google Fonts - Noto Sans KR -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>교과목 Q&A 게시판</h1>
-            <div class="auth-container" id="authContainer">
-                <!-- 로그인 상태에 따라 동적으로 변경됨 -->
-            </div>
+            <h1>질문 게시판</h1>
             <div class="subject-filter">
                 <select id="subjectSelect">
-                    <option value="all">전체 교과목</option>
+                    <option value="all">전체</option>
                     <option value="math">수학</option>
                     <option value="science">과학</option>
                     <option value="english">영어</option>
@@ -26,91 +25,58 @@
             </div>
         </header>
 
-        <main>
-            <!-- 로그인/회원가입 폼 -->
-            <div class="auth-forms" id="authForms">
-                <div class="login-form">
-                    <h2>로그인</h2>
-                    <form id="loginForm">
-                        <input type="email" id="loginEmail" placeholder="이메일" required>
-                        <input type="password" id="loginPassword" placeholder="비밀번호" required>
-                        <button type="submit">로그인</button>
-                        <p class="auth-error" id="loginError"></p>
-                    </form>
-                </div>
-                <div class="signup-form">
-                    <h2>회원가입</h2>
-                    <form id="signupForm">
-                        <input type="email" id="signupEmail" placeholder="이메일" required>
-                        <input type="password" id="signupPassword" placeholder="비밀번호 (6자 이상)" required minlength="6">
-                        <input type="password" id="signupPasswordConfirm" placeholder="비밀번호 확인" required minlength="6">
-                        <button type="submit">회원가입</button>
-                        <p class="auth-error" id="signupError"></p>
-                    </form>
-                </div>
+        <form id="postForm">
+            <div class="form-group">
+                <label for="postSubject">교과목</label>
+                <select id="postSubject" required>
+                    <option value="">선택하세요</option>
+                    <option value="math">수학</option>
+                    <option value="science">과학</option>
+                    <option value="english">영어</option>
+                    <option value="korean">국어</option>
+                </select>
             </div>
+            <div class="form-group">
+                <label for="postTitle">제목</label>
+                <input type="text" id="postTitle" required>
+            </div>
+            <div class="form-group">
+                <label for="postContent">내용</label>
+                <textarea id="postContent" required></textarea>
+            </div>
+            <button type="submit">질문하기</button>
+        </form>
 
-            <!-- 게시물 작성 폼 (로그인 시에만 표시) -->
-            <div class="post-form" id="postForm" style="display: none;">
-                <h2>새 질문 작성</h2>
-                <form id="questionForm">
-                    <select id="postSubject" required>
-                        <option value="">교과목 선택</option>
-                        <option value="math">수학</option>
-                        <option value="science">과학</option>
-                        <option value="english">영어</option>
-                        <option value="korean">국어</option>
-                    </select>
-                    <input type="text" id="postTitle" placeholder="제목을 입력하세요" required>
-                    <textarea id="postContent" placeholder="질문 내용을 입력하세요" required></textarea>
-                    <button type="submit">질문 등록</button>
-                </form>
-            </div>
+        <div id="postsContainer"></div>
 
-            <div class="posts-container" id="postsContainer">
-                <!-- 게시물들이 여기에 동적으로 추가됩니다 -->
+        <!-- 게시물 템플릿 -->
+        <template id="postTemplate">
+            <article class="post">
+                <div class="post-header">
+                    <span class="subject"></span>
+                    <h2 class="title"></h2>
+                    <div class="post-meta">
+                        <span class="date"></span>
+                    </div>
+                </div>
+                <div class="post-content"></div>
+                <div class="post-actions">
+                    <button class="answer-btn">답변하기</button>
+                </div>
+                <div class="answers-container"></div>
+            </article>
+        </template>
+
+        <!-- 답변 템플릿 -->
+        <template id="answerTemplate">
+            <div class="answer">
+                <div class="answer-content"></div>
+                <div class="answer-meta">
+                    <span class="answer-date"></span>
+                </div>
             </div>
-        </main>
+        </template>
     </div>
-
-    <!-- 게시물 템플릿 -->
-    <template id="postTemplate">
-        <div class="post">
-            <div class="post-header">
-                <span class="subject"></span>
-                <h3 class="title"></h3>
-                <div class="post-meta">
-                    <span class="author"></span>
-                    <span class="date"></span>
-                </div>
-            </div>
-            <div class="post-content"></div>
-            <div class="post-actions">
-                <button class="answer-btn">답변하기</button>
-                <button class="delete-btn" style="display: none;">삭제</button>
-            </div>
-            <div class="answers-container">
-                <!-- 답변들이 여기에 동적으로 추가됩니다 -->
-            </div>
-        </div>
-    </template>
-
-    <!-- 답변 템플릿 -->
-    <template id="answerTemplate">
-        <div class="answer">
-            <div class="answer-content"></div>
-            <div class="answer-meta">
-                <span class="answer-author"></span>
-                <span class="answer-date"></span>
-            </div>
-            <button class="delete-answer-btn" style="display: none;">삭제</button>
-        </div>
-    </template>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <!-- Firebase 설정 -->
     <script src="firebase-config.js"></script>

@@ -5,8 +5,7 @@ const subjectSelect = document.getElementById('subjectSelect');
 const postTemplate = document.getElementById('postTemplate');
 const answerTemplate = document.getElementById('answerTemplate');
 
-// Firebase 데이터베이스 참조
-const db = firebase.firestore();
+// Firebase 데이터베이스 참조 (firebase-config.js에서 초기화된 db 사용)
 const postsCollection = db.collection('posts');
 
 // 게시물 렌더링 함수
